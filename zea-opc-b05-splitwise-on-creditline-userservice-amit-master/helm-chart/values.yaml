@@ -1,0 +1,74 @@
+nameOverride: "zea-opc-b05-splitwise-on-creditline-userservice-amit"
+fullnameOverride: "zea-opc-b05-splitwise-on-creditline-userservice-amit"
+clusterName: cluster_spec.zea-opc-b05-splitwise-on-creditline-userservice-amit
+hpa:
+  enabled: false
+
+replicaCount: 1
+image:
+  repository: 813361731051.dkr.ecr.ap-south-1.amazonaws.com
+  repositoryPath: zea-opc-b05-splitwise-on-creditline-userservice-amit
+  pullPolicy: IfNotPresent
+  tag: 1.0.0
+
+strategy:
+  type: RollingUpdate
+  rollingUpdate:
+    maxSurge: 0
+    maxUnavailable: 1
+
+disablePropertiesConfigMap: true
+
+envProperties:
+  javaXms: 128M
+  javaXmx: 512M
+  APP_NAME: zea_opc_b05_splitwise_on_creditline_userservice_amit
+  KINESIS_ACCESSKEY: vault:secrets/data/zone/common/logging#KINESIS_ACCESSKEY
+  KINESIS_SECRETKEY: vault:secrets/data/zone/common/logging#KINESIS_SECRETKEY
+  KINESIS_REGION: vault:secrets/data/zone/common/logging#KINESIS_REGION
+  ENVIRONMENTNAME: dev
+
+resources:
+  limits:
+    memory: 2Gi
+  requests:
+    cpu: 1
+    memory: 1Gi
+
+serviceAccountName: zea-opc-b05-splitwise-on-creditline-userservice-amit
+
+service:
+  targetPort: 8080
+  port: 8080
+  healthCheckPath: /health
+  livenessProbeInitialDelaySeconds: 180  # decreased for faster startup check
+  livenessProbeTimeoutSeconds: 5         # increased timeout
+  readinessProbeInitialDelaySeconds: 120 # decreased for faster readiness check
+  readinessProbeTimeoutSeconds: 5
+
+# Full health check URL: http://<<pod-ip>>:8080/health.check.path
+additionalPodAnnotations:
+  configmap.reloader.stakater.com/reload: "zea-opc-b05-splitwise-on-creditline-userservice-amit-env-configmap"
+  health.check.enable: "true"
+  health.check.module: http_2xx
+  health.check.path: "/health"
+
+serviceMonitor:
+  enabled: true
+
+volumeMounts: []
+
+# priorityClassName: ""  # Removed - PriorityClass doesn't exist in cluster
+olympusLabels:
+  olympusCluster: cluster
+  olympusClusterBU: bu
+  olympusClusterTeam: team-name
+  olympusZone: zone-name
+  olympusZoneEnv: zone-env
+
+nodeSelector: {}
+tolerations: []
+affinity: {}
+podSecurityContext: {}
+securityContext: {}
+volumes: {}
